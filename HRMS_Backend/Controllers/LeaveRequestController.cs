@@ -25,6 +25,26 @@ namespace HRMS_Backend.Controllers
         [HttpPost("create")]
         public IActionResult Create(CreateLeaveRequestDto dto)
         {
+           
+    if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //  فاليديشن منطقي للتواريخ
+            if (dto.ToDate < dto.FromDate)
+            {
+                return BadRequest("تاريخ النهاية ما ينفعش يكون قبل تاريخ البداية");
+            }
+
+            var calculatedDays = (dto.ToDate.Date - dto.FromDate.Date).Days + 1;
+
+            // 4️⃣ فاليديشن TotalDays
+            if (dto.TotalDays != calculatedDays)
+            {
+                return BadRequest($"عدد الأيام غير صحيح. العدد الصحيح هو {calculatedDays}");
+            }
+
             // نتحقق من الموظف
             var employee = _context.Employees
                 .FirstOrDefault(e => e.Id == dto.EmployeeId);
