@@ -66,6 +66,13 @@ namespace HRMS_Backend.Data
                 new RolePermission { Id = 9, RoleId = 1, PermissionId = 9 },
                 new RolePermission { Id = 10, RoleId = 1, PermissionId = 10 }
             );
+            modelBuilder.Entity<LeaveType>().HasData(
+    new LeaveType { Id = 1, Name = "سنوية", IsActive = true },
+    new LeaveType { Id = 2, Name = "مرضية", IsActive = true },
+    new LeaveType { Id = 3, Name = "بدون مرتب", IsActive = true }
+);
+
+
         }
 
         public DbSet<Employee> Employee { get; set; }
@@ -83,5 +90,9 @@ namespace HRMS_Backend.Data
         public DbSet<BankBranch> BankBranches { get; set; }
 
         public DbSet<EmployeeFinancialData> EmployeeFinancialDatas { get; set; }
+
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
+
+        public DbSet<LeaveType> LeaveTypes { get; set; }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using HRMS_Backend.Data;
 using HRMS_Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRMS_Backend.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "Manager,SuperAdmin")]
     [ApiController]
     public class MaritalStatusController : ControllerBase
     {

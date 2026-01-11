@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using HRMS_Backend.Data;
+﻿using HRMS_Backend.Data;
 using HRMS_Backend.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace HRMS_Backend.Controllers
 {
+    [Authorize(Roles = "Manager,SuperAdmin")]
     [ApiController]
+
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {

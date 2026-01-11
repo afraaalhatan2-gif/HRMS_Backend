@@ -46,6 +46,7 @@ namespace HRMS_Backend.Controllers
         // -----------------------------------------
         //                Login
         // -----------------------------------------
+
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -130,6 +131,7 @@ namespace HRMS_Backend.Controllers
         }
 
         [Authorize]
+
         [HttpGet("my-permissions")]
         public IActionResult GetMyPermissions()
         {
