@@ -24,10 +24,15 @@ namespace HRMS_Backend.Controllers
         [HttpPost("create")]
         public IActionResult Create([FromBody] CreateEmployeeDto dto)
         {
+            var user = _context.Users.Find(dto.UserId);
+            if (user == null)
+                return BadRequest("User not found");
+
             var employee = new Employee
             {
                 EmployeeNumber = dto.EmployeeNumber,
                 FullName = dto.FullName,
+                UserId = dto.UserId,
                 MotherName = dto.MotherName,
                 NationalId = dto.NationalId,
                 BirthDate = dto.BirthDate,

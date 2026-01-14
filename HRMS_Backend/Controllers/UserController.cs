@@ -6,6 +6,7 @@ using System.Text;
 using System.Text;
 using HRMS_Backend.Data;
 using HRMS_Backend.Data;
+using HRMS_Backend.DTOs;
 using HRMS_Backend.Models;
 using HRMS_Backend.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -32,15 +33,19 @@ namespace HRMS_Backend.Controllers
         //                Register
         // -----------------------------------------
         [HttpPost("register")]
-        public IActionResult Register(User user)
+        public IActionResult Register(RegisterUserDto dto)
         {
-            // تشفير الباسورد
-            user.PasswordHash = HashPassword(user.PasswordHash);
+            var user = new User
+            {
+                Username = dto.Username,
+                PasswordHash = HashPassword(dto.Password),
+                Role = dto.Role
+            };
 
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            return Ok("User Registered Successfully!");
+            return Ok(new { user.Id, user.Username });
         }
 
         // -----------------------------------------
@@ -103,7 +108,8 @@ namespace HRMS_Backend.Controllers
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.Username ?? ""),
-        new Claim(ClaimTypes.Role, roleName ?? "")
+        new Claim(ClaimTypes.Role, roleName ?? ""),
+           new Claim("UserId", user.Id.ToString())
     };
 
             foreach (var perm in userPermissions)

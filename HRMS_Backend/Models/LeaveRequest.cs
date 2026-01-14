@@ -1,4 +1,6 @@
-﻿namespace HRMS_Backend.Models
+﻿using HRMS_Backend.Enums;
+
+namespace HRMS_Backend.Models
 {
     public class LeaveRequest
     {
@@ -10,7 +12,7 @@
 
         // نوع الإجازة
         public int LeaveTypeId { get; set; }
-        public LeaveType LeaveType { get; set; }
+        public LeaveTypes LeaveType { get; set; }
 
         // من - إلى
         public DateTime FromDate { get; set; }
@@ -23,6 +25,14 @@
         public string? Notes { get; set; }
 
         // حالة الطلب
-        public string Status { get; set; } = "قيد المراجعة";
+        public LeaveStatus Status { get; set; } 
+
+        
+
+        public string? سبب_الرفض { get; set; }
+
+       
+
+        public string? ManagerNote { get; set; }
     }
 }

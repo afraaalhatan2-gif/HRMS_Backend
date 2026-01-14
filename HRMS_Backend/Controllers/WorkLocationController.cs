@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HRMS_Backend.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "Manager,SuperAdmin")]
+   
     [ApiController]
     public class WorkLocationController : ControllerBase
     {

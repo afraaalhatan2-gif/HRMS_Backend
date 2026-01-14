@@ -1,6 +1,8 @@
-﻿using HRMS_Backend.Attributes;
+﻿using System.Security.Claims;
+using HRMS_Backend.Attributes;
 using HRMS_Backend.Data;
 using HRMS_Backend.DTOs;
+using HRMS_Backend.Enums;
 using HRMS_Backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,47 +35,52 @@ namespace HRMS_Backend.Controllers
 
             //  فاليديشن منطقي للتواريخ
             if (dto.ToDate < dto.FromDate)
-            {
-                return BadRequest("تاريخ النهاية ما ينفعش يكون قبل تاريخ البداية");
-            }
+                return BadRequest("تاريخ النهاية ما ينفعش يكون قبل البداية");
 
-            var calculatedDays = (dto.ToDate.Date - dto.FromDate.Date).Days + 1;
+            // 🔹 نجيب اليوزر الحالي
+            var username = User.Identity?.Name;
 
-            // 4️⃣ فاليديشن TotalDays
-            if (dto.TotalDays != calculatedDays)
-            {
-                return BadRequest($"عدد الأيام غير صحيح. العدد الصحيح هو {calculatedDays}");
-            }
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized("User not found in token");
 
-            // نتحقق من الموظف
-            var employee = _context.Employees
-                .FirstOrDefault(e => e.Id == dto.EmployeeId);
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (role == "SuperAdmin")
+                return BadRequest("السوبر أدمن ما يقدرش يقدّم إجازة");
+
+            // 🔹 نجيب الموظف المرتبط باليوزر
+            var userId = int.Parse(User.FindFirst("UserId").Value);
+
+            var employee = _context.Employee
+                .FirstOrDefault(e => e.UserId == userId);
 
             if (employee == null)
-                return BadRequest("Employee not found");
+                return BadRequest("الموظف غير موجود في النظام");
 
-            // نتحقق من نوع الإجازة
+            // 🔹 نتحقق من نوع الإجازة
             var leaveType = _context.LeaveTypes
                 .FirstOrDefault(l => l.Id == dto.LeaveTypeId);
 
             if (leaveType == null)
-                return BadRequest("Leave type not found");
+                return BadRequest("نوع الإجازة غير موجود");
+
+            var totalDays = (dto.ToDate.Date - dto.FromDate.Date).Days + 1;
 
             var leave = new LeaveRequest
             {
-                EmployeeId = dto.EmployeeId,
+                EmployeeId = employee.Id,
                 LeaveTypeId = dto.LeaveTypeId,
                 FromDate = dto.FromDate,
                 ToDate = dto.ToDate,
-                TotalDays = (dto.ToDate - dto.FromDate).Days + 1,
+                TotalDays = totalDays,
                 Notes = dto.Notes,
-                Status = "Pending"
+                Status = LeaveStatus.قيد_الانتظار
             };
 
             _context.LeaveRequests.Add(leave);
             _context.SaveChanges();
 
-            return Ok("Leave request created successfully");
+            return Ok("تم إرسال طلب الإجازة بنجاح");
         }
 
         // Get All Leave Requests
@@ -85,16 +92,19 @@ namespace HRMS_Backend.Controllers
             var data = _context.LeaveRequests
                 .Include(l => l.Employee)
                 .Include(l => l.LeaveType)
-                .Select(l => new
+                .Select(l => new LeaveRequestResponseDto
                 {
-                    l.Id,
-                    Employee = l.Employee.FullName,
-                    LeaveType = l.LeaveType.Name,
-                    l.FromDate,
-                    l.ToDate,
-                    l.TotalDays,
-                    l.Notes,
-                    l.Status
+                    Id = l.Id,
+                    EmployeeName = l.Employee.FullName,
+                    LeaveType = l.LeaveType.اسم_الاجازة,
+                    FromDate = l.FromDate,
+                    ToDate = l.ToDate,
+                    TotalDays = l.TotalDays,
+
+                    Status = l.Status.ToString(), 
+                    RejectionReason = l.Status == LeaveStatus.مرفوض
+                                ? l.ManagerNote
+                                : null
                 })
                 .ToList();
 
@@ -107,13 +117,16 @@ namespace HRMS_Backend.Controllers
         [HttpPut("approve/{id}")]
         public IActionResult Approve(int id)
         {
-            var leave = _context.LeaveRequests.Find(id);
-            if (leave == null) return NotFound();
+            var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
 
-            leave.Status = "Approved";
+            if (leave == null)
+                return NotFound("طلب الإجازة غير موجود");
+
+            leave.Status = LeaveStatus.موافق_المدير;
+
             _context.SaveChanges();
 
-            return Ok("Leave approved");
+            return Ok("تمت الموافقة على الإجازة");
         }
 
         // Reject Leave
@@ -121,15 +134,19 @@ namespace HRMS_Backend.Controllers
         [Authorize]
         [HasPermission("ApproveLeave")]
         [HttpPut("reject/{id}")]
-        public IActionResult Reject(int id)
+        public IActionResult RejectLeave(int id, [FromBody] string reason)
         {
-            var leave = _context.LeaveRequests.Find(id);
-            if (leave == null) return NotFound();
+            var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
 
-            leave.Status = "Rejected";
+            if (leave == null)
+                return NotFound("طلب الإجازة غير موجود");
+
+            leave.Status = LeaveStatus.مرفوض;
+            leave.ManagerNote = reason;
+
             _context.SaveChanges();
 
-            return Ok("Leave rejected");
+            return Ok("تم رفض الإجازة");
         }
     }
 }

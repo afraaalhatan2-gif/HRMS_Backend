@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251221062545_Init_HRMS_Tables")]
-    partial class Init_HRMS_Tables
+    [Migration("20260114152228_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,10 +132,28 @@ namespace HRMS_Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("WorkLocationId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("EmploymentStatusId");
+
+                    b.HasIndex("JobGradeId");
+
+                    b.HasIndex("JobTitleId");
+
+                    b.HasIndex("MaritalStatusId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("WorkLocationId");
 
                     b.ToTable("Employee");
                 });
@@ -214,9 +232,144 @@ namespace HRMS_Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("JobTitles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "موظف"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "مشرف"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "مدير"
+                        });
                 });
 
-            modelBuilder.Entity("HRMS_Backend.Models.MatirialStatus", b =>
+            modelBuilder.Entity("HRMS_Backend.Models.LeaveRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ManagerNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("سبب_الرفض")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.ToTable("LeaveRequests");
+                });
+
+            modelBuilder.Entity("HRMS_Backend.Models.LeaveTypes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("اسم_الاجازة")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("اسم_الاجازة");
+
+                    b.Property<bool>("تحتاج_نموذج")
+                        .HasColumnType("bit")
+                        .HasColumnName("تحتاج_نموذج");
+
+                    b.Property<bool>("مخصومة_من_الرصيد")
+                        .HasColumnType("bit")
+                        .HasColumnName("مخصومة_من_الرصيد");
+
+                    b.Property<bool>("مفعلة")
+                        .HasColumnType("bit")
+                        .HasColumnName("مفعلة");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LeaveTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            اسم_الاجازة = "إجازة سنوية",
+                            تحتاج_نموذج = false,
+                            مخصومة_من_الرصيد = true,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            اسم_الاجازة = "إجازة مرضية",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = true,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            اسم_الاجازة = "إجازة حج",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 4,
+                            اسم_الاجازة = "إجازة عمرة",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 5,
+                            اسم_الاجازة = "إجازة وضع",
+                            تحتاج_نموذج = false,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
+                        });
+                });
+
+            modelBuilder.Entity("HRMS_Backend.Models.MaritalStatus", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -231,6 +384,28 @@ namespace HRMS_Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MaritalStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "أعزب"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "متزوج"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "مطلق"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "ارمل"
+                        });
                 });
 
             modelBuilder.Entity("HRMS_Backend.Models.Permission", b =>
@@ -516,6 +691,84 @@ namespace HRMS_Backend.Migrations
                     b.ToTable("SubDepartments");
                 });
 
+            modelBuilder.Entity("HRMS_Backend.Models.Employee", b =>
+                {
+                    b.HasOne("HRMS_Backend.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.EmploymentStatus", "EmploymentStatus")
+                        .WithMany()
+                        .HasForeignKey("EmploymentStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.JobGrade", "JobGrade")
+                        .WithMany()
+                        .HasForeignKey("JobGradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.JobTitle", "JobTitle")
+                        .WithMany()
+                        .HasForeignKey("JobTitleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.MaritalStatus", "MaritalStatus")
+                        .WithMany()
+                        .HasForeignKey("MaritalStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.User", "User")
+                        .WithOne("Employee")
+                        .HasForeignKey("HRMS_Backend.Models.Employee", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.WorkLocation", "WorkLocation")
+                        .WithMany()
+                        .HasForeignKey("WorkLocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("EmploymentStatus");
+
+                    b.Navigation("JobGrade");
+
+                    b.Navigation("JobTitle");
+
+                    b.Navigation("MaritalStatus");
+
+                    b.Navigation("User");
+
+                    b.Navigation("WorkLocation");
+                });
+
+            modelBuilder.Entity("HRMS_Backend.Models.LeaveRequest", b =>
+                {
+                    b.HasOne("HRMS_Backend.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS_Backend.Models.LeaveTypes", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveType");
+                });
+
             modelBuilder.Entity("HRMS_Backend.Models.RolePermission", b =>
                 {
                     b.HasOne("HRMS_Backend.Models.Permission", "Permission")
@@ -543,6 +796,11 @@ namespace HRMS_Backend.Migrations
             modelBuilder.Entity("HRMS_Backend.Models.Role", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("HRMS_Backend.Models.User", b =>
+                {
+                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }

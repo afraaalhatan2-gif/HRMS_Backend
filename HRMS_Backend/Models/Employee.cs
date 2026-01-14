@@ -26,7 +26,11 @@
         public int WorkLocationId { get; set; }
         public WorkLocation WorkLocation { get; set; }
         public int JobGradeId { get; set; }
-        public JobGrade JobGrade { get; set; }  
+        public JobGrade JobGrade { get; set; }
+
+        public int UserId { get; set; }
+        
+        public User User { get; set; }
 
 
     }

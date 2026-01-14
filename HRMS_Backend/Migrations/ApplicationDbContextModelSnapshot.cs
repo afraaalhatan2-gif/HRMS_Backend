@@ -129,6 +129,9 @@ namespace HRMS_Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("WorkLocationId")
                         .HasColumnType("int");
 
@@ -143,6 +146,9 @@ namespace HRMS_Backend.Migrations
                     b.HasIndex("JobTitleId");
 
                     b.HasIndex("MaritalStatusId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.HasIndex("WorkLocationId");
 
@@ -259,18 +265,25 @@ namespace HRMS_Backend.Migrations
                     b.Property<int>("LeaveTypeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ManagerNote")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime>("ToDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("TotalDays")
                         .HasColumnType("int");
+
+                    b.Property<string>("سبب_الرفض")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -281,7 +294,7 @@ namespace HRMS_Backend.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("HRMS_Backend.Models.LeaveType", b =>
+            modelBuilder.Entity("HRMS_Backend.Models.LeaveTypes", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -289,12 +302,22 @@ namespace HRMS_Backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("اسم_الاجازة")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("اسم_الاجازة");
+
+                    b.Property<bool>("تحتاج_نموذج")
+                        .HasColumnType("bit")
+                        .HasColumnName("تحتاج_نموذج");
+
+                    b.Property<bool>("مخصومة_من_الرصيد")
+                        .HasColumnType("bit")
+                        .HasColumnName("مخصومة_من_الرصيد");
+
+                    b.Property<bool>("مفعلة")
+                        .HasColumnType("bit")
+                        .HasColumnName("مفعلة");
 
                     b.HasKey("Id");
 
@@ -304,20 +327,42 @@ namespace HRMS_Backend.Migrations
                         new
                         {
                             Id = 1,
-                            IsActive = true,
-                            Name = "سنوية"
+                            اسم_الاجازة = "إجازة سنوية",
+                            تحتاج_نموذج = false,
+                            مخصومة_من_الرصيد = true,
+                            مفعلة = true
                         },
                         new
                         {
                             Id = 2,
-                            IsActive = true,
-                            Name = "مرضية"
+                            اسم_الاجازة = "إجازة مرضية",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = true,
+                            مفعلة = true
                         },
                         new
                         {
                             Id = 3,
-                            IsActive = true,
-                            Name = "بدون مرتب"
+                            اسم_الاجازة = "إجازة حج",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 4,
+                            اسم_الاجازة = "إجازة عمرة",
+                            تحتاج_نموذج = true,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
+                        },
+                        new
+                        {
+                            Id = 5,
+                            اسم_الاجازة = "إجازة وضع",
+                            تحتاج_نموذج = false,
+                            مخصومة_من_الرصيد = false,
+                            مفعلة = true
                         });
                 });
 
@@ -555,6 +600,18 @@ namespace HRMS_Backend.Migrations
                             Id = 10,
                             PermissionId = 10,
                             RoleId = 1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            PermissionId = 6,
+                            RoleId = 5
+                        },
+                        new
+                        {
+                            Id = 12,
+                            PermissionId = 5,
+                            RoleId = 4
                         });
                 });
 
@@ -675,6 +732,12 @@ namespace HRMS_Backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("HRMS_Backend.Models.User", "User")
+                        .WithOne("Employee")
+                        .HasForeignKey("HRMS_Backend.Models.Employee", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("HRMS_Backend.Models.WorkLocation", "WorkLocation")
                         .WithMany()
                         .HasForeignKey("WorkLocationId")
@@ -691,6 +754,8 @@ namespace HRMS_Backend.Migrations
 
                     b.Navigation("MaritalStatus");
 
+                    b.Navigation("User");
+
                     b.Navigation("WorkLocation");
                 });
 
@@ -702,7 +767,7 @@ namespace HRMS_Backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HRMS_Backend.Models.LeaveType", "LeaveType")
+                    b.HasOne("HRMS_Backend.Models.LeaveTypes", "LeaveType")
                         .WithMany()
                         .HasForeignKey("LeaveTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -740,6 +805,11 @@ namespace HRMS_Backend.Migrations
             modelBuilder.Entity("HRMS_Backend.Models.Role", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("HRMS_Backend.Models.User", b =>
+                {
+                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }

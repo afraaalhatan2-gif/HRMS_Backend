@@ -12,5 +12,8 @@ namespace HRMS_Backend.Models
 
         public string Role { get; set; }  // SuperAdmin, Manager, Employee ...
         public int RoleId { get; set; }
-    }
+
+        public Employee? Employee { get; set; }
+    
+}
 }

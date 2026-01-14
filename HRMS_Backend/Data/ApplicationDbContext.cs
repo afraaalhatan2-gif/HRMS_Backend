@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using HRMS_Backend.Data;
+using HRMS_Backend.Enums;
 using HRMS_Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,16 +65,64 @@ namespace HRMS_Backend.Data
                 new RolePermission { Id = 7, RoleId = 1, PermissionId = 7 },
                 new RolePermission { Id = 8, RoleId = 1, PermissionId = 8 },
                 new RolePermission { Id = 9, RoleId = 1, PermissionId = 9 },
-                new RolePermission { Id = 10, RoleId = 1, PermissionId = 10 }
+                new RolePermission { Id = 10, RoleId = 1, PermissionId = 10 },
+
+              //  موظف → SubmitLeave فقط
+    new RolePermission { Id = 11, RoleId = 5, PermissionId = 6 },
+
+     // مدير قسم → ApproveLeave
+    new RolePermission { Id = 12, RoleId = 4, PermissionId = 5 }
+
             );
-            modelBuilder.Entity<LeaveType>().HasData(
-    new LeaveType { Id = 1, Name = "سنوية", IsActive = true },
-    new LeaveType { Id = 2, Name = "مرضية", IsActive = true },
-    new LeaveType { Id = 3, Name = "بدون مرتب", IsActive = true }
-);
+            modelBuilder.Entity<LeaveTypes>().HasData(
+                new LeaveTypes
+                {
+                    Id = 1,
+                    اسم_الاجازة = "إجازة سنوية",
+                    مخصومة_من_الرصيد = true,
+                    تحتاج_نموذج = false,
+                    مفعلة = true
+                },
+                new LeaveTypes
+                {
+                    Id = 2,
+                    اسم_الاجازة = "إجازة مرضية",
+                    مخصومة_من_الرصيد = true,
+                    تحتاج_نموذج = true,
+                    مفعلة = true
+                },
+                new LeaveTypes
+                {
+                    Id = 3,
+                    اسم_الاجازة = "إجازة حج",
+                    مخصومة_من_الرصيد = false,
+                    تحتاج_نموذج = true,
+                    مفعلة = true
+                },
+                new LeaveTypes
+                {
+                    Id = 4,
+                    اسم_الاجازة = "إجازة عمرة",
+                    مخصومة_من_الرصيد = false,
+                    تحتاج_نموذج = true,
+                    مفعلة = true
+                },
+                new LeaveTypes
+                {
+                    Id = 5,
+                    اسم_الاجازة = "إجازة وضع",
+                    مخصومة_من_الرصيد = false,
+                    تحتاج_نموذج = false,
+                    مفعلة = true
+                }
+            );
 
-
+            modelBuilder.Entity<LeaveRequest>()
+    .Property(l => l.Status)
+    .HasDefaultValue(LeaveStatus.قيد_الانتظار);
         }
+
+
 
         public DbSet<Employee> Employee { get; set; }
         public DbSet<MaritalStatus> MaritalStatuses { get; set; }
@@ -93,6 +142,6 @@ namespace HRMS_Backend.Data
 
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
-        public DbSet<LeaveType> LeaveTypes { get; set; }
+        public DbSet<LeaveTypes> LeaveTypes{ get; set; }
     }
 }
