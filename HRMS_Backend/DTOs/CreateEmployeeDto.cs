@@ -5,6 +5,8 @@
         public string EmployeeNumber { get; set; }
         public string FullName { get; set; }
         public int UserId { get; set; }
+        public int? ManagerId { get; set; }   
+        public int AnnualLeaveBalance { get; set; } = 30; 
 
         public string MotherName { get; set; }
         public string NationalId { get; set; }

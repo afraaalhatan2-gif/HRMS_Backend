@@ -83,70 +83,168 @@ namespace HRMS_Backend.Controllers
             return Ok("تم إرسال طلب الإجازة بنجاح");
         }
 
-        // Get All Leave Requests
         [Authorize]
-        [HasPermission("ApproveLeave")]
-        [HttpGet("all")]
-        public IActionResult GetAll()
+        [HasPermission("SubmitLeave")]
+        [HttpGet("my-requests")]
+        
+        public IActionResult MyLeaveRequests()
         {
-            var data = _context.LeaveRequests
-                .Include(l => l.Employee)
-                .Include(l => l.LeaveType)
-                .Select(l => new LeaveRequestResponseDto
-                {
-                    Id = l.Id,
-                    EmployeeName = l.Employee.FullName,
-                    LeaveType = l.LeaveType.اسم_الاجازة,
-                    FromDate = l.FromDate,
-                    ToDate = l.ToDate,
-                    TotalDays = l.TotalDays,
+            var username = User.Identity.Name;
 
-                    Status = l.Status.ToString(), 
-                    RejectionReason = l.Status == LeaveStatus.مرفوض
-                                ? l.ManagerNote
-                                : null
+            var employee = _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefault(e => e.User.Username == username);
+
+            if (employee == null)
+                return NotFound("الموظف غير موجود");
+
+            var requests = _context.LeaveRequests
+                .Where(l => l.EmployeeId == employee.Id)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.FromDate,
+                    l.ToDate,
+                    l.TotalDays,
+                    Status = l.Status.ToString(),
+                    ManagerNote = l.ManagerNote
                 })
                 .ToList();
 
-            return Ok(data);
+            return Ok(new
+            {
+                Balance = employee.AnnualLeaveBalance,
+                Requests = requests
+            });
         }
 
-        // Approve Leave
-        [Authorize]
+        // Get All Leave Requests
+       // [Authorize]
+       // [HasPermission("ApproveLeave")]
+       // [HttpGet("all")]
+      //  public IActionResult GetAll()
+      //  {
+         //var data = _context.LeaveRequests
+           //     .Include(l => l.Employee)
+             //   .Include(l => l.LeaveType)
+               // .Select(l => new LeaveRequestResponseDto
+               // {
+                 //   Id = l.Id,
+                   // EmployeeName = l.Employee.FullName,
+                    //LeaveType = l.LeaveType.اسم_الاجازة,
+                    //FromDate = l.FromDate,
+                   // ToDate = l.ToDate,
+                  //  TotalDays = l.TotalDays,
+
+                    //Status = l.Status.ToString(), 
+                   // RejectionReason = l.Status == LeaveStatus.مرفوض
+                     //           ? l.ManagerNote
+                       //         : null
+                //})
+                //.ToList();
+
+            //return Ok(data);
+        //}
+        [HttpGet("manager/pending")]
         [HasPermission("ApproveLeave")]
-        [HttpPut("approve/{id}")]
-        public IActionResult Approve(int id)
+        public IActionResult ManagerPendingRequests()
         {
-            var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
+            var username = User.Identity.Name;
+
+            var manager = _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefault(e => e.User.Username == username);
+
+            if (manager == null)
+                return NotFound("المدير غير موجود");
+
+            var requests = _context.LeaveRequests
+                .Include(l => l.Employee)
+                .Where(l => l.Employee.ManagerId == manager.Id &&
+                            l.Status == LeaveStatus.قيد_الانتظار)
+                .Select(l => new
+                {
+                    l.Id,
+                    EmployeeName = l.Employee.FullName,
+                    l.FromDate,
+                    l.ToDate,
+                    l.TotalDays
+                })
+                .ToList();
+
+            return Ok(requests);
+        }
+
+
+        [HttpPost("{id}/manager-decision")]
+        [HasPermission("ApproveLeave")]
+        public IActionResult ManagerDecision(int id, bool approve, string? note)
+        {
+            var leave = _context.LeaveRequests
+                .Include(l => l.Employee)
+                .FirstOrDefault(l => l.Id == id);
 
             if (leave == null)
-                return NotFound("طلب الإجازة غير موجود");
+                return NotFound();
 
-            leave.Status = LeaveStatus.موافق_المدير;
+            if (leave.Status != LeaveStatus.قيد_الانتظار)
+                return BadRequest("الطلب تم التعامل معه مسبقاً");
+
+            if (approve)
+            {
+                // نخصم من الرصيد
+                if (leave.Employee.AnnualLeaveBalance < leave.TotalDays)
+                    return BadRequest("رصيد الإجازات غير كافي");
+
+                leave.Employee.AnnualLeaveBalance -= leave.TotalDays;
+                leave.Status = LeaveStatus.موافق_المدير;
+            }
+            else
+            {
+                leave.Status = LeaveStatus.مرفوض;
+;
+                leave.ManagerNote = note;
+            }
 
             _context.SaveChanges();
-
-            return Ok("تمت الموافقة على الإجازة");
+            return Ok("تم تحديث حالة الطلب");
         }
+        // Approve Leave
+       // [Authorize]
+        //[HasPermission("ApproveLeave")]
+    //    [HttpPut("approve/{id}")]
+      //  public IActionResult Approve(int id)
+        //{
+          //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
+
+            //if (leave == null)
+              //  return NotFound("طلب الإجازة غير موجود");
+
+            //leave.Status = LeaveStatus.موافق_المدير;
+
+//            _context.SaveChanges();
+
+  //          return Ok("تمت الموافقة على الإجازة");
+    //    }
 
         // Reject Leave
 
-        [Authorize]
-        [HasPermission("ApproveLeave")]
-        [HttpPut("reject/{id}")]
-        public IActionResult RejectLeave(int id, [FromBody] string reason)
-        {
-            var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
+      //  [Authorize]
+        //[HasPermission("ApproveLeave")]
+        //[HttpPut("reject/{id}")]
+        //public IActionResult RejectLeave(int id, [FromBody] string reason)
+        //{
+          //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
 
-            if (leave == null)
-                return NotFound("طلب الإجازة غير موجود");
+            //if (leave == null)
+              //  return NotFound("طلب الإجازة غير موجود");
 
-            leave.Status = LeaveStatus.مرفوض;
-            leave.ManagerNote = reason;
+            //leave.Status = LeaveStatus.مرفوض;
+            //leave.ManagerNote = reason;
 
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
-            return Ok("تم رفض الإجازة");
-        }
+            //return Ok("تم رفض الإجازة");
+        //}
     }
 }

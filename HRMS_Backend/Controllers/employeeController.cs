@@ -33,6 +33,8 @@ namespace HRMS_Backend.Controllers
                 EmployeeNumber = dto.EmployeeNumber,
                 FullName = dto.FullName,
                 UserId = dto.UserId,
+                ManagerId = dto.ManagerId,
+                AnnualLeaveBalance = dto.AnnualLeaveBalance,
                 MotherName = dto.MotherName,
                 NationalId = dto.NationalId,
                 BirthDate = dto.BirthDate,

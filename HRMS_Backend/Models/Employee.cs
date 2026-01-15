@@ -32,6 +32,10 @@
         
         public User User { get; set; }
 
+        public int AnnualLeaveBalance { get; set; } = 30;
+        public int? ManagerId { get; set; }
+        public Employee? Manager { get; set; }
+
 
     }
 }
