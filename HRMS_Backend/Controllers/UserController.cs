@@ -109,7 +109,8 @@ namespace HRMS_Backend.Controllers
     {
         new Claim(ClaimTypes.Name, user.Username ?? ""),
         new Claim(ClaimTypes.Role, roleName ?? ""),
-           new Claim("UserId", user.Id.ToString())
+           new Claim("UserId", user.Id.ToString()),
+           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
     };
 
             foreach (var perm in userPermissions)
