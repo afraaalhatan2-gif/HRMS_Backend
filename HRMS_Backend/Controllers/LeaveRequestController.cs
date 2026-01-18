@@ -57,6 +57,7 @@ namespace HRMS_Backend.Controllers
             if (employee == null)
                 return BadRequest("الموظف غير موجود في النظام");
 
+         
             // 🔹 نتحقق من نوع الإجازة
             var leaveType = _context.LeaveTypes
                 .FirstOrDefault(l => l.Id == dto.LeaveTypeId);
@@ -64,7 +65,27 @@ namespace HRMS_Backend.Controllers
             if (leaveType == null)
                 return BadRequest("نوع الإجازة غير موجود");
 
-            var totalDays = (dto.ToDate.Date - dto.FromDate.Date).Days + 1;
+            var holidays = _context.OfficialHolidays
+    .Select(h => h.Date.Date)
+    .ToList();
+
+            int totalDays = 0;
+
+            for (var date = dto.FromDate.Date; date <= dto.ToDate.Date; date = date.AddDays(1))
+            {
+                // الجمعة والسبت ما يتحسبوش
+                if (date.DayOfWeek == DayOfWeek.Friday ||
+                    date.DayOfWeek == DayOfWeek.Saturday)
+                    continue;
+
+                // العطل الرسمية ما تتحسبش
+                if (holidays.Contains(date))
+                    continue;
+
+                totalDays++;
+            }
+            if (employee.AnnualLeaveBalance < totalDays)
+                return BadRequest("رصيد الإجازات غير كافي");
 
             var leave = new LeaveRequest
             {
@@ -74,8 +95,10 @@ namespace HRMS_Backend.Controllers
                 ToDate = dto.ToDate,
                 TotalDays = totalDays,
                 Notes = dto.Notes,
+
                 Status = LeaveStatus.قيد_الانتظار
             };
+
 
 
             _context.LeaveRequests.Add(leave);
@@ -122,11 +145,17 @@ namespace HRMS_Backend.Controllers
             if (employee == null)
                 return NotFound("الموظف غير موجود");
 
+
+
             var requests = _context.LeaveRequests
+               .Include(l => l.LeaveType)
                 .Where(l => l.EmployeeId == employee.Id)
                 .Select(l => new
                 {
                     l.Id,
+                    LeaveTypeName = l.LeaveType != null
+                ? l.LeaveType.اسم_الاجازة : "غير محدد",
+
                     l.FromDate,
                     l.ToDate,
                     l.TotalDays,

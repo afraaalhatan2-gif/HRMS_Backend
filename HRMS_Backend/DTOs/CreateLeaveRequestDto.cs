@@ -9,6 +9,8 @@ namespace HRMS_Backend.DTOs
         [Required(ErrorMessage = "نوع الإجازة مطلوب")]
         public int LeaveTypeId { get; set; }
 
+        public string LeaveTypeName { get; set; }
+
         [Required(ErrorMessage = "تاريخ البداية مطلوب")]
         public DateTime FromDate { get; set; }
 

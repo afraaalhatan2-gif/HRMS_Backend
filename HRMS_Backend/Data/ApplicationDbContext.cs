@@ -156,5 +156,6 @@ namespace HRMS_Backend.Data
         public DbSet<LeaveTypes> LeaveTypes{ get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<OfficialHoliday> OfficialHolidays { get; set; }
     }
 }
