@@ -4,6 +4,7 @@ using HRMS_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116192043_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -767,9 +770,8 @@ namespace HRMS_Backend.Migrations
                         .IsRequired();
 
                     b.HasOne("HRMS_Backend.Models.Employee", "Manager")
-                        .WithMany("Subordinates")
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("ManagerId");
 
                     b.HasOne("HRMS_Backend.Models.MaritalStatus", "MaritalStatus")
                         .WithMany()
@@ -853,11 +855,6 @@ namespace HRMS_Backend.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("HRMS_Backend.Models.Employee", b =>
-                {
-                    b.Navigation("Subordinates");
                 });
 
             modelBuilder.Entity("HRMS_Backend.Models.Permission", b =>

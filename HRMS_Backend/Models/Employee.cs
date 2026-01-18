@@ -34,7 +34,12 @@
 
         public int AnnualLeaveBalance { get; set; } = 30;
         public int? ManagerId { get; set; }
+
         public Employee? Manager { get; set; }
+
+        public ICollection<Employee> Subordinates { get; set; }
+       = new List<Employee>();
+
 
 
     }

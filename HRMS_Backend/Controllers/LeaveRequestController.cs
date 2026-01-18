@@ -77,10 +77,34 @@ namespace HRMS_Backend.Controllers
                 Status = LeaveStatus.قيد_الانتظار
             };
 
+
             _context.LeaveRequests.Add(leave);
             _context.SaveChanges();
 
+            var employees = _context.Employee
+                .FirstOrDefault(e => e.UserId == userId);
+
+            // نجيب المدير
+            var manager = _context.Employee
+                .FirstOrDefault(m => m.Id == employees.ManagerId);
+
+            if (manager != null)
+            {
+                var notification = new Notification
+                {
+                    UserId = manager.UserId,
+                    Title = "طلب إجازة جديد",
+                    Message = $"تم إرسال طلب إجازة من الموظف {employee.FullName}"
+                };
+
+                _context.Notifications.Add(notification);
+                _context.SaveChanges();
+            }
+
             return Ok("تم إرسال طلب الإجازة بنجاح");
+
+
+
         }
 
         [Authorize]
@@ -182,14 +206,16 @@ namespace HRMS_Backend.Controllers
         {
             var leave = _context.LeaveRequests
                 .Include(l => l.Employee)
+                 .ThenInclude(e => e.User)
                 .FirstOrDefault(l => l.Id == id);
 
             if (leave == null)
-                return NotFound();
+                return NotFound("طلب الإجازة غير موجود");
 
             if (leave.Status != LeaveStatus.قيد_الانتظار)
                 return BadRequest("الطلب تم التعامل معه مسبقاً");
 
+            var employeeUserId = leave.Employee.UserId;
             if (approve)
             {
                 // نخصم من الرصيد
@@ -198,12 +224,34 @@ namespace HRMS_Backend.Controllers
 
                 leave.Employee.AnnualLeaveBalance -= leave.TotalDays;
                 leave.Status = LeaveStatus.موافق_المدير;
+
+                var notification = new Notification
+                {
+                    UserId = employeeUserId,
+                    Title = "تمت الموافقة على طلب الإجازة",
+                    Message = $"تمت الموافقة على طلب الإجازة من {leave.FromDate:yyyy-MM-dd} إلى {leave.ToDate:yyyy-MM-dd}",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Notifications.Add(notification);
             }
             else
             {
                 leave.Status = LeaveStatus.مرفوض;
 ;
                 leave.ManagerNote = note;
+                var notification = new Notification
+                {
+                    UserId = employeeUserId,
+                    Title = "تم رفض طلب الإجازة",
+                    Message = $"تم رفض طلب الإجازة. السبب: {note ?? "لم يتم توضيح السبب"}",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Notifications.Add(notification);
+
             }
 
             _context.SaveChanges();

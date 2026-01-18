@@ -18,7 +18,18 @@ namespace HRMS_Backend.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+
             base.OnModelCreating(modelBuilder);
+
+
+            modelBuilder.Entity<Employee>()
+    .HasOne(e => e.Manager)
+    .WithMany(m => m.Subordinates)
+    .HasForeignKey(e => e.ManagerId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+
 
             modelBuilder.Entity<MaritalStatus>().HasData(
     new MaritalStatus { Id = 1, Name = "أعزب" },
@@ -143,5 +154,7 @@ namespace HRMS_Backend.Data
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         public DbSet<LeaveTypes> LeaveTypes{ get; set; }
+
+        public DbSet<Notification> Notifications { get; set; }
     }
 }
