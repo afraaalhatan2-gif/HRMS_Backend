@@ -78,40 +78,40 @@ namespace HRMS_Backend.Controllers
 
             return Ok("تم إنشاء الموظف والحساب بنجاح");
         }
-        [HttpPost("create")]
-        public IActionResult Create([FromBody] CreateEmployeeDto dto)
-        {
-            var user = _context.Users.Find(dto.UserId);
-            if (user == null)
-                return BadRequest("User not found");
+        //[HttpPost("create")]
+//        public IActionResult Create([FromBody] CreateEmployeeDto dto)
+  //      {
+    //        var user = _context.Users.Find(dto.UserId);
+      //      if (user == null)
+        //        return BadRequest("User not found");
+//
+  //          var employee = new Employee
+    //        {
+      //          EmployeeNumber = dto.EmployeeNumber,
+        //        FullName = dto.FullName,
+          //      UserId = dto.UserId,
+            //    ManagerId = dto.ManagerId,
+              //  AnnualLeaveBalance = dto.AnnualLeaveBalance,
+                //MotherName = dto.MotherName,
+//                NationalId = dto.NationalId,
+  //              BirthDate = dto.BirthDate,
+  //              Gender = dto.Gender,
+   //             Nationality = dto.Nationality,
+    //            HireDate = dto.HireDate,
 
-            var employee = new Employee
-            {
-                EmployeeNumber = dto.EmployeeNumber,
-                FullName = dto.FullName,
-                UserId = dto.UserId,
-                ManagerId = dto.ManagerId,
-                AnnualLeaveBalance = dto.AnnualLeaveBalance,
-                MotherName = dto.MotherName,
-                NationalId = dto.NationalId,
-                BirthDate = dto.BirthDate,
-                Gender = dto.Gender,
-                Nationality = dto.Nationality,
-                HireDate = dto.HireDate,
+      //          MaritalStatusId = dto.MaritalStatusId,
+        //        JobTitleId = dto.JobTitleId,
+          //      EmploymentStatusId = dto.EmploymentStatusId,
+            //    DepartmentId = dto.DepartmentId,
+              //  WorkLocationId = dto.WorkLocationId,
+                //JobGradeId = dto.JobGradeId
+            //};
 
-                MaritalStatusId = dto.MaritalStatusId,
-                JobTitleId = dto.JobTitleId,
-                EmploymentStatusId = dto.EmploymentStatusId,
-                DepartmentId = dto.DepartmentId,
-                WorkLocationId = dto.WorkLocationId,
-                JobGradeId = dto.JobGradeId
-            };
+            //_context.Employees.Add(employee);
+          //  _context.SaveChanges();
 
-            _context.Employees.Add(employee);
-            _context.SaveChanges();
-
-            return Ok(employee);
-        }
+            //return Ok(employee);
+        //}
 
         // Get All
         [HasPermission("ViewEmployee")]
@@ -139,6 +139,23 @@ namespace HRMS_Backend.Controllers
        .ToList();
 
             return Ok(employees);
+        }
+
+        [HasPermission("ViewEmployee")]
+        [HttpGet("managers")]
+        public IActionResult GetManagers()
+        {
+            var managers = _context.Employees
+                .Include(e => e.User)
+                .Where(e => e.User.Role == "مدير قسم")
+                .Select(e => new
+                {
+                    e.Id,
+                    e.FullName
+                })
+                .ToList();
+
+            return Ok(managers);
         }
 
         // Get By ID
