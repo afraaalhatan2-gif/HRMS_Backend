@@ -14,6 +14,13 @@ namespace HRMS_Backend.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private string HashPassword(string password)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
 
         public EmployeeController(ApplicationDbContext context)
         {
@@ -21,6 +28,56 @@ namespace HRMS_Backend.Controllers
         }
 
         [HasPermission("AddEmployee")]
+        [HttpPost("create-account")]
+        
+        public IActionResult CreateEmployeeWithAccount(CreateEmployeeAccountDto dto)
+        {
+
+            // 1️⃣ تحقق من اليوزر نيم
+            if (_context.Users.Any(u => u.Username == dto.Username))
+                return BadRequest("اسم المستخدم موجود مسبقاً");
+
+            //  إنشاء User
+            var user = new User
+            {
+                Username = dto.Username,
+                PasswordHash = HashPassword(dto.Password),
+                Role = dto.Role
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges(); 
+
+            // إنشاء Employee وربطه باليوزر
+            var employee = new Employee
+            {
+                EmployeeNumber = dto.EmployeeNumber,
+                FullName = dto.FullName,
+                MotherName = dto.MotherName,
+                NationalId = dto.NationalId,
+                BirthDate = dto.BirthDate,
+                Gender = dto.Gender,
+                Nationality = dto.Nationality,
+                HireDate = dto.HireDate,
+
+                MaritalStatusId = dto.MaritalStatusId,
+                JobTitleId = dto.JobTitleId,
+                EmploymentStatusId = dto.EmploymentStatusId,
+                DepartmentId = dto.DepartmentId,
+                WorkLocationId = dto.WorkLocationId,
+                JobGradeId = dto.JobGradeId,
+
+                ManagerId = dto.ManagerId,
+                AnnualLeaveBalance = dto.AnnualLeaveBalance,
+
+                UserId = user.Id
+            };
+
+            _context.Employees.Add(employee);
+            _context.SaveChanges();
+
+            return Ok("تم إنشاء الموظف والحساب بنجاح");
+        }
         [HttpPost("create")]
         public IActionResult Create([FromBody] CreateEmployeeDto dto)
         {
