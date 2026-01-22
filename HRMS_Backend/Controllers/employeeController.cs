@@ -1,11 +1,12 @@
 ﻿using HRMS_Backend.Attributes;
 using HRMS_Backend.Data;
 using HRMS_Backend.DTOs;
+using HRMS_Backend.DTOs;
 using HRMS_Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HRMS_Backend.DTOs;
 
 namespace HRMS_Backend.Controllers
 {
@@ -42,7 +43,7 @@ namespace HRMS_Backend.Controllers
             {
                 Username = dto.Username,
                 PasswordHash = HashPassword(dto.Password),
-                Role = dto.Role
+                Role = dto.Role,
             };
 
             _context.Users.Add(user);
@@ -78,39 +79,61 @@ namespace HRMS_Backend.Controllers
 
             return Ok("تم إنشاء الموظف والحساب بنجاح");
         }
+
+        [Authorize]
+        [HttpPost("my/education")]
+        public IActionResult AddMyEducation(EmployeeEducation dto)
+        {
+            var userId = int.Parse(User.FindFirst("UserId").Value);
+
+            var employee = _context.Employees
+                .FirstOrDefault(e => e.UserId == userId);
+
+            if (employee == null)
+                return NotFound();
+
+            dto.EmployeeId = employee.Id;
+
+            _context.EmployeeEducations.Add(dto);
+            _context.SaveChanges();
+
+            return Ok("تمت إضافة المؤهل");
+        }
+
+
         //[HttpPost("create")]
-//        public IActionResult Create([FromBody] CreateEmployeeDto dto)
-  //      {
-    //        var user = _context.Users.Find(dto.UserId);
-      //      if (user == null)
+        //        public IActionResult Create([FromBody] CreateEmployeeDto dto)
+        //      {
+        //        var user = _context.Users.Find(dto.UserId);
+        //      if (user == null)
         //        return BadRequest("User not found");
-//
-  //          var employee = new Employee
-    //        {
-      //          EmployeeNumber = dto.EmployeeNumber,
+        //
+        //          var employee = new Employee
+        //        {
+        //          EmployeeNumber = dto.EmployeeNumber,
         //        FullName = dto.FullName,
-          //      UserId = dto.UserId,
-            //    ManagerId = dto.ManagerId,
-              //  AnnualLeaveBalance = dto.AnnualLeaveBalance,
-                //MotherName = dto.MotherName,
-//                NationalId = dto.NationalId,
-  //              BirthDate = dto.BirthDate,
-  //              Gender = dto.Gender,
-   //             Nationality = dto.Nationality,
-    //            HireDate = dto.HireDate,
+        //      UserId = dto.UserId,
+        //    ManagerId = dto.ManagerId,
+        //  AnnualLeaveBalance = dto.AnnualLeaveBalance,
+        //MotherName = dto.MotherName,
+        //                NationalId = dto.NationalId,
+        //              BirthDate = dto.BirthDate,
+        //              Gender = dto.Gender,
+        //             Nationality = dto.Nationality,
+        //            HireDate = dto.HireDate,
 
-      //          MaritalStatusId = dto.MaritalStatusId,
+        //          MaritalStatusId = dto.MaritalStatusId,
         //        JobTitleId = dto.JobTitleId,
-          //      EmploymentStatusId = dto.EmploymentStatusId,
-            //    DepartmentId = dto.DepartmentId,
-              //  WorkLocationId = dto.WorkLocationId,
-                //JobGradeId = dto.JobGradeId
-            //};
+        //      EmploymentStatusId = dto.EmploymentStatusId,
+        //    DepartmentId = dto.DepartmentId,
+        //  WorkLocationId = dto.WorkLocationId,
+        //JobGradeId = dto.JobGradeId
+        //};
 
-            //_context.Employees.Add(employee);
-          //  _context.SaveChanges();
+        //_context.Employees.Add(employee);
+        //  _context.SaveChanges();
 
-            //return Ok(employee);
+        //return Ok(employee);
         //}
 
         // Get All
@@ -147,7 +170,7 @@ namespace HRMS_Backend.Controllers
         {
             var managers = _context.Employees
                 .Include(e => e.User)
-                .Where(e => e.User.Role == "مدير قسم")
+                .Where(e => e.User.RoleId == 4)
                 .Select(e => new
                 {
                     e.Id,
@@ -202,6 +225,32 @@ namespace HRMS_Backend.Controllers
             _context.SaveChanges();
 
             return Ok("Employee deleted successfully");
+        }
+        [HttpGet("my-profile")]
+       
+        public IActionResult MyProfile()
+        {
+            var employeeId = User.FindFirst("EmployeeId")?.Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+                return Unauthorized("EmployeeId غير موجود في التوكن");
+
+            var employee = _context.Employees
+                .Include(e => e.JobTitle)
+                .Include(e => e.JobGrade)
+                .FirstOrDefault(e => e.Id == int.Parse(employeeId));
+
+            if (employee == null)
+                return NotFound("الموظف غير موجود");
+
+            return Ok(new
+            {
+                id = employee.Id,
+                fullName = employee.FullName,
+                jobTitle = employee.JobTitle?.Name,
+                jobGrade = employee.JobGrade?.Name,
+                profileImage = (string?)null
+            });
         }
     }
 }

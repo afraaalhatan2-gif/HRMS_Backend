@@ -50,7 +50,7 @@ namespace HRMS_Backend.Data
                 new Role { Id = 2, RoleName = "مدير إدارة" },
                 new Role { Id = 3, RoleName = "مدير إدارة فرعية" },
                 new Role { Id = 4, RoleName = "مدير قسم" },
-                new Role { Id = 5, RoleName = "موظف" }
+                new Role { Id = 5, RoleName = "Employee" }
             );
             // Seed Permissions
             modelBuilder.Entity<Permission>().HasData(
@@ -63,7 +63,10 @@ namespace HRMS_Backend.Data
                 new Permission { Id = 7, PermissionName = "SubmitComplaint" },
                 new Permission { Id = 8, PermissionName = "ViewComplaints" },
                 new Permission { Id = 9, PermissionName = "AssignTask" },
-                new Permission { Id = 10, PermissionName = "ViewDepartmentEmployees" }
+                new Permission { Id = 10, PermissionName = "ViewDepartmentEmployees" },
+                new Permission { Id = 11, PermissionName = "AddOwnEducation" },
+                new Permission { Id = 12, PermissionName = "EditOwnEducation" },
+                new Permission { Id = 13, PermissionName = "ManageEmployeeEducation" }
             );
             // SuperAdmin gets ALL permissions
             modelBuilder.Entity<RolePermission>().HasData(
@@ -77,13 +80,19 @@ namespace HRMS_Backend.Data
                 new RolePermission { Id = 8, RoleId = 1, PermissionId = 8 },
                 new RolePermission { Id = 9, RoleId = 1, PermissionId = 9 },
                 new RolePermission { Id = 10, RoleId = 1, PermissionId = 10 },
+                new RolePermission { Id = 13, RoleId = 1, PermissionId = 11 },
+                new RolePermission { Id = 14, RoleId = 1, PermissionId = 12 },
+                new RolePermission { Id = 15, RoleId = 1, PermissionId = 13 },
 
-              //  موظف → SubmitLeave فقط
+    //  موظف → SubmitLeave فقط
     new RolePermission { Id = 11, RoleId = 5, PermissionId = 6 },
 
      // مدير قسم → ApproveLeave
-    new RolePermission { Id = 12, RoleId = 4, PermissionId = 5 }
+    new RolePermission { Id = 12, RoleId = 4, PermissionId = 5 },
 
+    new RolePermission { Id = 16, RoleId = 5, PermissionId = 11 }, // AddOwnEducation
+    new RolePermission { Id = 17, RoleId = 5, PermissionId = 12 }, // EditOwnEducation
+    new RolePermission { Id = 18, RoleId = 5, PermissionId = 4 }
             );
             modelBuilder.Entity<LeaveTypes>().HasData(
                 new LeaveTypes
@@ -127,6 +136,16 @@ namespace HRMS_Backend.Data
                     مفعلة = true
                 }
             );
+            modelBuilder.Entity<EmployeeEducation>()
+    .HasOne(e => e.Employee)
+    .WithMany(e => e.Educations)
+    .HasForeignKey(e => e.EmployeeId);
+
+
+            modelBuilder.Entity<EmployeeAdministrativeData>()
+    .HasOne(a => a.Employee)
+    .WithOne(e => e.AdministrativeData)
+    .HasForeignKey<EmployeeAdministrativeData>(a => a.EmployeeId);
 
             modelBuilder.Entity<LeaveRequest>()
     .Property(l => l.Status)
@@ -157,5 +176,10 @@ namespace HRMS_Backend.Data
 
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OfficialHoliday> OfficialHolidays { get; set; }
+        public DbSet<EmployeeEducation> EmployeeEducations { get; set; }
+
+        public DbSet<EmployeeAdministrativeData> EmployeeAdministrativeDatas { get; set; }
+
+        
     }
 }

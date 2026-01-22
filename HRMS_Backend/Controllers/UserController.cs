@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace HRMS_Backend.Controllers
@@ -39,7 +40,7 @@ namespace HRMS_Backend.Controllers
             {
                 Username = dto.Username,
                 PasswordHash = HashPassword(dto.Password),
-                Role = dto.Role
+                RoleId = dto.RoleId   
             };
 
             _context.Users.Add(user);
@@ -56,14 +57,33 @@ namespace HRMS_Backend.Controllers
         public IActionResult Login([FromBody] LoginRequest request)
         {
             var hashed = HashPassword(request.Password);
-            var user = _context.Users.FirstOrDefault(u => u.Username == request.Username && u.PasswordHash == hashed);
+
+            var user = _context.Users
+        .Include(u => u.Role)
+        .FirstOrDefault(u =>
+            u.Username == request.Username &&
+            u.PasswordHash == hashed);
 
             if (user == null)
                 return Unauthorized("Invalid username or password");
 
+            // نجيب الموظف المرتبط باليوزر
+            var employee = _context.Employees
+                .Include(e => e.JobTitle)
+                .Include(e => e.JobGrade)
+                .FirstOrDefault(e => e.UserId == user.Id);
+
+           
+            
+
             var token = GenerateJwtToken(user);
 
-            return Ok(new { token, role = user.Role });
+            return Ok(new
+            {
+                token,
+                roleId = user.RoleId,
+                roleName = user.Role.RoleName
+            });
         }
 
 
@@ -88,30 +108,42 @@ namespace HRMS_Backend.Controllers
         {
 
             // 1) جلب اسم الدور من الـ user (نظراً لأن Users جدولك يخزن role كـ نص)
-            var roleName = user.Role;
+            var roleId = user.RoleId;
 
-            // 2) جلب roleId من جدول Roles (لو موجود)
-            var role = _context.Roles.FirstOrDefault(r => r.RoleName == roleName);
-            var roleId = role?.Id ?? 0; // لو ما لقيش الدور يساوي 0
-
+           
             // 3) جلب أسماء الصلاحيات المرتبطة بهذا الدور
-            var userPermissions = new List<string>();
-            if (roleId != 0)
-            {
-                userPermissions = (from rp in _context.RolePermissions
-                                   where rp.RoleId == roleId
-                                   join p in _context.Permissions on rp.PermissionId equals p.Id
-                                   select p.PermissionName).ToList();
-            }
+            var userPermissions =
+ (
+     from rp in _context.RolePermissions
+     join p in _context.Permissions on rp.PermissionId equals p.Id
+     where rp.RoleId == roleId
+     select p.PermissionName
+ ).ToList();
+            // /3.5) جلب بيانات الموظف المرتبط باليوزر
+            var employee = _context.Employees
+    .Include(e => e.JobTitle)
+    .Include(e => e.JobGrade)
+    .FirstOrDefault(e => e.UserId == user.Id);
 
-            // 4) بناء الـ claims (اسم، دور، وصلاحيات منفصلة)
             var claims = new List<Claim>
-    {
+{
+    // بيانات اليوزر
+     // بيانات اليوزر
         new Claim(ClaimTypes.Name, user.Username ?? ""),
-        new Claim(ClaimTypes.Role, roleName ?? ""),
-           new Claim("UserId", user.Id.ToString()),
-           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-    };
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim("UserId", user.Id.ToString()),
+
+        // الدور (مهم جداً)
+        new Claim(ClaimTypes.Role, user.Role.RoleName), // 👈 هذا كان ناقص
+        new Claim("RoleId", roleId.ToString()),
+
+        // بيانات الموظف
+        new Claim("EmployeeId", employee?.Id.ToString() ?? ""),
+        new Claim("FullName", employee?.FullName ?? ""),
+        new Claim("JobTitle", employee?.JobTitle?.Name ?? ""),
+        new Claim("JobGrade", employee?.JobGrade?.Name ?? "")
+    
+        };
 
             foreach (var perm in userPermissions)
             {
@@ -120,7 +152,10 @@ namespace HRMS_Backend.Controllers
             }
 
             // 5) المفتاح لازم يكون نفس المفتاح في Program.cs
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretKeyForJWTAuthentication1234567890")); // غيّريه لو عندِك مفتاح آخر
+            var key = new SymmetricSecurityKey(
+      Encoding.UTF8.GetBytes("SuperSecretKeyForJWTAuthentication1234567890")
+  );
+
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -129,12 +164,10 @@ namespace HRMS_Backend.Controllers
                 signingCredentials: creds
             );
 
+
+
             return new JwtSecurityTokenHandler().WriteToken(token);
-            foreach (var perm in userPermissions)
-            {
-                Console.WriteLine("PERMISSION: " + perm);
-                claims.Add(new Claim("permission", perm));
-            }
+         
         }
 
         [Authorize]

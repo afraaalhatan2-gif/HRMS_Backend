@@ -90,6 +90,8 @@ namespace HRMS_Backend.Controllers
             var leave = new LeaveRequest
             {
                 EmployeeId = employee.Id,
+
+             
                 LeaveTypeId = dto.LeaveTypeId,
                 FromDate = dto.FromDate,
                 ToDate = dto.ToDate,
@@ -153,9 +155,8 @@ namespace HRMS_Backend.Controllers
                 .Select(l => new
                 {
                     l.Id,
-                    LeaveTypeName = l.LeaveType != null
-                ? l.LeaveType.اسم_الاجازة : "غير محدد",
-
+                    LeaveTypeName = l.LeaveType ,
+               
                     l.FromDate,
                     l.ToDate,
                     l.TotalDays,
@@ -221,7 +222,13 @@ namespace HRMS_Backend.Controllers
                     EmployeeName = l.Employee.FullName,
                     l.FromDate,
                     l.ToDate,
-                    l.TotalDays
+                    l.TotalDays,
+
+                     LeaveTypeId = l.LeaveTypeId,
+                    LeaveTypeName = l.LeaveType.اسم_الاجازة,
+
+                    Status = l.Status.ToString(),
+                    l.Notes
                 })
                 .ToList();
 

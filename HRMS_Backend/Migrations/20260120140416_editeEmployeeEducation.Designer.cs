@@ -4,6 +4,7 @@ using HRMS_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260120140416_editeEmployeeEducation")]
+    partial class editeEmployeeEducation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,7 +196,7 @@ namespace HRMS_Backend.Migrations
                     b.HasIndex("EmployeeId")
                         .IsUnique();
 
-                    b.ToTable("EmployeeAdministrativeDatas");
+                    b.ToTable("EmployeeAdministrativeData");
                 });
 
             modelBuilder.Entity("HRMS_Backend.Models.EmployeeEducation", b =>
@@ -240,27 +243,19 @@ namespace HRMS_Backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("Allowances")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("BankBranchId")
                         .HasColumnType("int");
 
                     b.Property<int>("BankId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("BasicSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("Deductions")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("Salary")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasIndex("EmployeeId");
+                    b.HasKey("Id");
 
                     b.ToTable("EmployeeFinancialDatas");
                 });
@@ -666,7 +661,7 @@ namespace HRMS_Backend.Migrations
                         new
                         {
                             Id = 5,
-                            RoleName = "Employee"
+                            RoleName = "موظف"
                         });
                 });
 
@@ -794,12 +789,6 @@ namespace HRMS_Backend.Migrations
                             Id = 17,
                             PermissionId = 12,
                             RoleId = 5
-                        },
-                        new
-                        {
-                            Id = 18,
-                            PermissionId = 4,
-                            RoleId = 5
                         });
                 });
 
@@ -835,6 +824,10 @@ namespace HRMS_Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
@@ -843,8 +836,6 @@ namespace HRMS_Backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -974,17 +965,6 @@ namespace HRMS_Backend.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("HRMS_Backend.Models.EmployeeFinancialData", b =>
-                {
-                    b.HasOne("HRMS_Backend.Models.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-                });
-
             modelBuilder.Entity("HRMS_Backend.Models.LeaveRequest", b =>
                 {
                     b.HasOne("HRMS_Backend.Models.Employee", "Employee")
@@ -1030,17 +1010,6 @@ namespace HRMS_Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Permission");
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("HRMS_Backend.Models.User", b =>
-                {
-                    b.HasOne("HRMS_Backend.Models.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Role");
                 });

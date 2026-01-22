@@ -10,8 +10,9 @@ namespace HRMS_Backend.Models
 
         public string PasswordHash { get; set; }  // مش بنخزن الباسورد نفسه
 
-        public string Role { get; set; }  // SuperAdmin, Manager, Employee ...
+      
         public int RoleId { get; set; }
+        public Role Role { get; set; }  // SuperAdmin, Manager, Employee ...
 
         public Employee? Employee { get; set; }
     

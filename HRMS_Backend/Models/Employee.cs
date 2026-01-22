@@ -41,6 +41,8 @@
        = new List<Employee>();
 
 
+        public ICollection<EmployeeEducation> Educations { get; set; }
 
+        public EmployeeAdministrativeData AdministrativeData { get; set; }
     }
 }

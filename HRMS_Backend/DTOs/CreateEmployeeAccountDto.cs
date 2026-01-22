@@ -1,11 +1,13 @@
-﻿namespace HRMS_Backend.DTOs
+﻿using HRMS_Backend.Models;
+
+namespace HRMS_Backend.DTOs
 {
     public class CreateEmployeeAccountDto
     {
         //  بيانات الحساب
         public string Username { get; set; }
         public string Password { get; set; }
-        public string Role { get; set; }   
+        public Role Role { get; set; }   
 
         //  بيانات الموظف
         public string EmployeeNumber { get; set; }
