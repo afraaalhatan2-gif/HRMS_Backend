@@ -241,9 +241,10 @@ namespace HRMS_Backend.Controllers
         public IActionResult ManagerDecision(int id, bool approve, string? note)
         {
             var leave = _context.LeaveRequests
-                .Include(l => l.Employee)
-                 .ThenInclude(e => e.User)
-                .FirstOrDefault(l => l.Id == id);
+    .Include(l => l.LeaveType)   
+    .Include(l => l.Employee)
+        .ThenInclude(e => e.User)
+    .FirstOrDefault(l => l.Id == id);
 
             if (leave == null)
                 return NotFound("طلب الإجازة غير موجود");
@@ -254,11 +255,14 @@ namespace HRMS_Backend.Controllers
             var employeeUserId = leave.Employee.UserId;
             if (approve)
             {
-                // نخصم من الرصيد
-                if (leave.Employee.AnnualLeaveBalance < leave.TotalDays)
-                    return BadRequest("رصيد الإجازات غير كافي");
+                // نخصم فقط لو نوع الإجازة مخصومة من الرصيد
+                if (leave.LeaveType.مخصومة_من_الرصيد)
+                {
+                    if (leave.Employee.AnnualLeaveBalance < leave.TotalDays)
+                        return BadRequest("رصيد الإجازات غير كافي");
 
-                leave.Employee.AnnualLeaveBalance -= leave.TotalDays;
+                    leave.Employee.AnnualLeaveBalance -= leave.TotalDays;
+                }
                 leave.Status = LeaveStatus.موافق_المدير;
 
                 var notification = new Notification
