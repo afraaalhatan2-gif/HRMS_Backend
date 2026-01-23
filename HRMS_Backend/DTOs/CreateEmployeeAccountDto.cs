@@ -7,11 +7,17 @@ namespace HRMS_Backend.DTOs
         //  بيانات الحساب
         public string Username { get; set; }
         public string Password { get; set; }
-        public Role Role { get; set; }   
+        public int RoleId { get; set; }   
 
         //  بيانات الموظف
         public string EmployeeNumber { get; set; }
+
+        
+
         public string FullName { get; set; }
+        public string Phone1 { get; set; }
+
+        public string? Phone2 { get; set; }
         public int? ManagerId { get; set; }
 
         public int AnnualLeaveBalance { get; set; } = 30;

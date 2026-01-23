@@ -38,12 +38,21 @@ namespace HRMS_Backend.Controllers
             if (_context.Users.Any(u => u.Username == dto.Username))
                 return BadRequest("اسم المستخدم موجود مسبقاً");
 
+            var role = _context.Roles
+       .Include(r => r.RolePermissions)
+       .ThenInclude(rp => rp.Permission)
+       .FirstOrDefault(r => r.Id == dto.RoleId);
+
+            if (role == null)
+                return BadRequest("Role not found");
+
             //  إنشاء User
             var user = new User
             {
                 Username = dto.Username,
                 PasswordHash = HashPassword(dto.Password),
-                Role = dto.Role,
+                RoleId = dto.RoleId,
+              
             };
 
             _context.Users.Add(user);
@@ -54,6 +63,8 @@ namespace HRMS_Backend.Controllers
             {
                 EmployeeNumber = dto.EmployeeNumber,
                 FullName = dto.FullName,
+                Phone1 = dto.Phone1,
+                Phone2 = dto.Phone2,
                 MotherName = dto.MotherName,
                 NationalId = dto.NationalId,
                 BirthDate = dto.BirthDate,
