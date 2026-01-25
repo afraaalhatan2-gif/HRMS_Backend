@@ -53,6 +53,7 @@ namespace HRMS_Backend.Controllers
         }
 
         [HttpGet("my-data")]
+        [HasPermission("ViewEmployee")]
         [Authorize]
         public IActionResult GetMyFinancialData()
         {
@@ -82,6 +83,73 @@ namespace HRMS_Backend.Controllers
 
             return Ok(data);
         }
+        [HttpGet("get-all")]
+        [HasPermission("ViewEmployee")]
+        [Authorize]
+        public IActionResult GetAllFinancialData()
+        {
+            var data = _context.EmployeeFinancialDatas
+                .Include(f => f.Employee)
+                    .ThenInclude(e => e.JobTitle)
+                .Include(f => f.Bank)
+                .Include(f => f.BankBranch)
+                .Select(f => new
+                {
+                    EmployeeId = f.EmployeeId,
+                    FullName = f.Employee.FullName,
+                    JobTitle = f.Employee.JobTitle.Name,
+
+                    BasicSalary = f.BasicSalary,
+                    Allowances = f.Allowances,
+                    Deductions = f.Deductions,
+
+                    BankName = f.Bank.Name,
+                    BankBranch = f.BankBranch.Name
+                })
+                .ToList();
+
+            return Ok(data);
+        }
+
+
+
+        [HttpPut("{id}")]
+
+        
+        public IActionResult UpdateFinancialData(int id, CreateEmployeeFinancialDto dto)
+        {
+            var data = _context.EmployeeFinancialDatas
+                .FirstOrDefault(x => x.Id == id);
+
+            if (data == null)
+                return NotFound("البيانات المالية غير موجودة");
+
+            data.BasicSalary = dto.BasicSalary;
+            data.Allowances = dto.Allowances;
+            data.Deductions = dto.Deductions;
+            data.BankId = dto.BankId;
+            data.BankBranchId = dto.BankBranchId;
+
+            _context.SaveChanges();
+            return Ok("تم تحديث البيانات المالية بنجاح");
+        }
+        [HttpDelete("{id}")]
+        [HasPermission("DeleteFinancialData")]
+        public IActionResult DeleteFinancialData(int id)
+        {
+            var data = _context.EmployeeFinancialDatas
+                .FirstOrDefault(x => x.Id == id);
+
+            if (data == null)
+                return NotFound("البيانات المالية غير موجودة");
+
+            _context.EmployeeFinancialDatas.Remove(data);
+            _context.SaveChanges();
+
+            return Ok("تم حذف البيانات المالية");
+        }
 
     }
-    }
+
+}
+    

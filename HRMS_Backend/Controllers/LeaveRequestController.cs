@@ -255,6 +255,14 @@ namespace HRMS_Backend.Controllers
             var employeeUserId = leave.Employee.UserId;
             if (approve)
             {
+               // لو الإجازة تحتاج نموذج والنموذج مش مرفوع
+if (approve &&
+    leave.LeaveType.تحتاج_نموذج &&
+    string.IsNullOrEmpty(leave.AttachmentPath))
+                {
+                    return BadRequest("لا يمكن الموافقة على هذه الإجازة بدون إرفاق النموذج المطلوب");
+                }
+
                 // نخصم فقط لو نوع الإجازة مخصومة من الرصيد
                 if (leave.LeaveType.مخصومة_من_الرصيد)
                 {
@@ -297,42 +305,88 @@ namespace HRMS_Backend.Controllers
             _context.SaveChanges();
             return Ok("تم تحديث حالة الطلب");
         }
+
+        [HttpPost("{id}/upload-attachment")]
+        public IActionResult UploadAttachment(int id, IFormFile file)
+        {
+            var leave = _context.LeaveRequests
+                .Include(l => l.LeaveType)
+                .FirstOrDefault(l => l.Id == id);
+
+            if (leave == null)
+                return NotFound("طلب الإجازة غير موجود");
+
+            // لو الإجازة ما تحتاجش نموذج
+            if (!leave.LeaveType.تحتاج_نموذج)
+                return BadRequest("هذا النوع من الإجازات لا يحتاج نموذج");
+
+            if (file == null || file.Length == 0)
+                return BadRequest("الملف غير صالح");
+
+            // أنواع الملفات المسموحة
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("نوع الملف غير مسموح");
+
+            // مجلد الحفظ
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "leave-attachments");
+
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            // اسم ملف فريد
+            var fileName = $"leave_{leave.Id}_{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            // نخزن المسار في الداتابيز
+            leave.AttachmentPath = $"/leave-attachments/{fileName}";
+            _context.SaveChanges();
+
+            return Ok("تم رفع النموذج بنجاح");
+        }
         // Approve Leave
-       // [Authorize]
+        // [Authorize]
         //[HasPermission("ApproveLeave")]
-    //    [HttpPut("approve/{id}")]
-      //  public IActionResult Approve(int id)
+        //    [HttpPut("approve/{id}")]
+        //  public IActionResult Approve(int id)
         //{
-          //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
+        //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
 
-            //if (leave == null)
-              //  return NotFound("طلب الإجازة غير موجود");
+        //if (leave == null)
+        //  return NotFound("طلب الإجازة غير موجود");
 
-            //leave.Status = LeaveStatus.موافق_المدير;
+        //leave.Status = LeaveStatus.موافق_المدير;
 
-//            _context.SaveChanges();
+        //            _context.SaveChanges();
 
-  //          return Ok("تمت الموافقة على الإجازة");
-    //    }
+        //          return Ok("تمت الموافقة على الإجازة");
+        //    }
 
         // Reject Leave
 
-      //  [Authorize]
+        //  [Authorize]
         //[HasPermission("ApproveLeave")]
         //[HttpPut("reject/{id}")]
         //public IActionResult RejectLeave(int id, [FromBody] string reason)
         //{
-          //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
+        //  var leave = _context.LeaveRequests.FirstOrDefault(l => l.Id == id);
 
-            //if (leave == null)
-              //  return NotFound("طلب الإجازة غير موجود");
+        //if (leave == null)
+        //  return NotFound("طلب الإجازة غير موجود");
 
-            //leave.Status = LeaveStatus.مرفوض;
-            //leave.ManagerNote = reason;
+        //leave.Status = LeaveStatus.مرفوض;
+        //leave.ManagerNote = reason;
 
-            //_context.SaveChanges();
+        //_context.SaveChanges();
 
-            //return Ok("تم رفض الإجازة");
+        //return Ok("تم رفض الإجازة");
         //}
     }
 }

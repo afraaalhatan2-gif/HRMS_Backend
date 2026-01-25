@@ -1,4 +1,5 @@
-﻿using HRMS_Backend.Attributes;
+﻿using System;
+using HRMS_Backend.Attributes;
 using HRMS_Backend.Data;
 using HRMS_Backend.DTOs;
 using HRMS_Backend.Models;
@@ -47,6 +48,7 @@ namespace HRMS_Backend.Controllers
         }
 
         [HttpGet("my-data")]
+        [HasPermission("ViewEmployee")]
         [Authorize]
         public IActionResult GetMyAdministrativeData()
         {
@@ -76,5 +78,68 @@ namespace HRMS_Backend.Controllers
 
             return Ok(adminData);
         }
+
+       
+
+            [HttpGet("get-all")]
+        [HasPermission("ViewEmployee")]
+
+        public IActionResult GetAllAdministrativeData()
+            {
+                var data = _context.EmployeeAdministrativeDatas
+                    .Include(a => a.Employee)
+                        .ThenInclude(e => e.JobTitle)
+                    .Include(a => a.Employee)
+                        .ThenInclude(e => e.JobGrade)
+                    .Select(a => new
+                    {
+                        EmployeeId = a.EmployeeId,
+                        FullName = a.Employee.FullName,
+                        JobTitle = a.Employee.JobTitle.Name,
+                        JobGrade = a.Employee.JobGrade.Name,
+
+                        ContractType = a.ContractType,
+                        FileNumber = a.FileNumber,
+                        ContractStartDate = a.ContractStartDate,
+                        ContractEndDate = a.ContractEndDate
+                    })
+                    .ToList();
+
+                return Ok(data);
+            }
+        [HttpPut("{id}")]
+       
+        public IActionResult UpdateAdministrativeData(int id, EmployeeAdministrativeData dto)
+        {
+            var data = _context.EmployeeAdministrativeDatas
+                .FirstOrDefault(x => x.Id == id);
+
+            if (data == null)
+                return NotFound("البيانات الإدارية غير موجودة");
+
+            data.ContractType = dto.ContractType;
+            data.FileNumber = dto.FileNumber;
+            data.ContractStartDate = dto.ContractStartDate;
+            data.ContractEndDate = dto.ContractEndDate;
+
+            _context.SaveChanges();
+            return Ok("تم تحديث البيانات الإدارية بنجاح");
+        }
+        [HttpDelete("{id}")]
+       
+        public IActionResult DeleteAdministrativeData(int id)
+        {
+            var data = _context.EmployeeAdministrativeDatas
+                .FirstOrDefault(x => x.Id == id);
+
+            if (data == null)
+                return NotFound("البيانات الإدارية غير موجودة");
+
+            _context.EmployeeAdministrativeDatas.Remove(data);
+            _context.SaveChanges();
+
+            return Ok("تم حذف البيانات الإدارية");
+        }
     }
-}
+    }
+

@@ -34,5 +34,6 @@ namespace HRMS_Backend.Models
        
 
         public string? ManagerNote { get; set; }
+        public string? AttachmentPath { get; set; }
     }
 }

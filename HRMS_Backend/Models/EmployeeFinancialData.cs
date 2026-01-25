@@ -14,6 +14,10 @@
 
         public int BankId { get; set; }
 
+        public Bank Bank { get; set; }
+
         public int BankBranchId { get; set; }
+
+        public BankBranch BankBranch { get; set; }
     }
 }
