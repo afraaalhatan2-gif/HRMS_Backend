@@ -18,7 +18,7 @@ namespace HRMS_Backend.DTOs
         public string Phone1 { get; set; }
 
         public string? Phone2 { get; set; }
-        public int? ManagerId { get; set; }
+        
 
         public int AnnualLeaveBalance { get; set; } = 30;
 
@@ -26,7 +26,7 @@ namespace HRMS_Backend.DTOs
         public string NationalId { get; set; }
         public DateTime BirthDate { get; set; }
         public string Gender { get; set; }
-        public string Nationality { get; set; }
+       
         public DateTime HireDate { get; set; }
 
         public int MaritalStatusId { get; set; }

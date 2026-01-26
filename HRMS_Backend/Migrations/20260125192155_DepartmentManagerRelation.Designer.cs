@@ -4,6 +4,7 @@ using HRMS_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260125192155_DepartmentManagerRelation")]
+    partial class DepartmentManagerRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,6 +136,10 @@ namespace HRMS_Backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NationalId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nationality")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -460,14 +467,6 @@ namespace HRMS_Backend.Migrations
                         {
                             Id = 5,
                             اسم_الاجازة = "إجازة وضع",
-                            تحتاج_نموذج = false,
-                            مخصومة_من_الرصيد = false,
-                            مفعلة = true
-                        },
-                        new
-                        {
-                            Id = 6,
-                            اسم_الاجازة = "إجازة طارئه",
                             تحتاج_نموذج = false,
                             مخصومة_من_الرصيد = false,
                             مفعلة = true
@@ -799,12 +798,6 @@ namespace HRMS_Backend.Migrations
                             Id = 11,
                             PermissionId = 6,
                             RoleId = 5
-                        },
-                        new
-                        {
-                            Id = 19,
-                            PermissionId = 6,
-                            RoleId = 4
                         },
                         new
                         {

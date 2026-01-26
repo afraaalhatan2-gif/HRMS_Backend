@@ -13,7 +13,7 @@
         public string NationalId { get; set; }
         public DateTime BirthDate { get; set; }
         public string Gender { get; set; }
-        public string Nationality { get; set; }
+        
         public DateTime HireDate { get; set; }
 
         public int MaritalStatusId { get; set; }
@@ -36,9 +36,6 @@
         public User User { get; set; }
 
         public int AnnualLeaveBalance { get; set; } = 30;
-        public int? ManagerId { get; set; }
-
-        public Employee? Manager { get; set; }
 
         public ICollection<Employee> Subordinates { get; set; }
        = new List<Employee>();

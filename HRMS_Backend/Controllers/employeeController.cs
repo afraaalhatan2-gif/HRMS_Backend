@@ -33,7 +33,21 @@ namespace HRMS_Backend.Controllers
         
         public IActionResult CreateEmployeeWithAccount(CreateEmployeeAccountDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Username))
+                return BadRequest("اسم المستخدم مطلوب");
 
+            if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
+                return BadRequest("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+                return BadRequest("اسم الموظف الكامل مطلوب");
+
+            if (string.IsNullOrWhiteSpace(dto.EmployeeNumber))
+                return BadRequest("رقم الموظف مطلوب");
+
+            // التحقق من اسم المستخدم مسبقًا
+            if (_context.Users.Any(u => u.Username == dto.Username))
+                return BadRequest("اسم المستخدم موجود مسبقاً");
             // 1️⃣ تحقق من اليوزر نيم
             if (_context.Users.Any(u => u.Username == dto.Username))
                 return BadRequest("اسم المستخدم موجود مسبقاً");
@@ -55,6 +69,11 @@ namespace HRMS_Backend.Controllers
               
             };
 
+            var department = _context.Departments
+      .FirstOrDefault(d => d.Id == dto.DepartmentId);
+
+            if (department == null)
+                return BadRequest("الإدارة غير موجودة");
             _context.Users.Add(user);
             _context.SaveChanges(); 
 
@@ -69,7 +88,7 @@ namespace HRMS_Backend.Controllers
                 NationalId = dto.NationalId,
                 BirthDate = dto.BirthDate,
                 Gender = dto.Gender,
-                Nationality = dto.Nationality,
+               
                 HireDate = dto.HireDate,
 
                 MaritalStatusId = dto.MaritalStatusId,
@@ -79,16 +98,37 @@ namespace HRMS_Backend.Controllers
                 WorkLocationId = dto.WorkLocationId,
                 JobGradeId = dto.JobGradeId,
 
-                ManagerId = dto.ManagerId,
+               
                 AnnualLeaveBalance = dto.AnnualLeaveBalance,
 
-                UserId = user.Id
+                UserId = user.Id,
+              
             };
 
             _context.Employees.Add(employee);
             _context.SaveChanges();
 
             return Ok("تم إنشاء الموظف والحساب بنجاح");
+        }
+        [HttpPost("assign-manager")]
+        public IActionResult AssignManager(int departmentId, int employeeId)
+        {
+            var department = _context.Departments
+                .FirstOrDefault(d => d.Id == departmentId);
+
+            if (department == null)
+                return NotFound("الإدارة غير موجودة");
+
+            var employee = _context.Employees
+                .FirstOrDefault(e => e.Id == employeeId);
+
+            if (employee == null)
+                return NotFound("الموظف غير موجود");
+
+            department.ManagerEmployeeId = employeeId;
+
+            _context.SaveChanges();
+            return Ok("تم تعيين المدير بنجاح");
         }
 
         [Authorize]

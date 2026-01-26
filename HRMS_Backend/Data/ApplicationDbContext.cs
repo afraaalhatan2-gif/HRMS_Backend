@@ -23,12 +23,13 @@ namespace HRMS_Backend.Data
             base.OnModelCreating(modelBuilder);
 
 
-            modelBuilder.Entity<Employee>()
-    .HasOne(e => e.Manager)
-    .WithMany(m => m.Subordinates)
-    .HasForeignKey(e => e.ManagerId)
-    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Department>()
+     .HasOne(d => d.ManagerEmployee)
+     .WithMany()
+     .HasForeignKey(d => d.ManagerEmployeeId)
+     .OnDelete(DeleteBehavior.Restrict);
 
+            base.OnModelCreating(modelBuilder);
 
 
             modelBuilder.Entity<MaritalStatus>().HasData(
@@ -84,10 +85,11 @@ namespace HRMS_Backend.Data
                 new RolePermission { Id = 14, RoleId = 1, PermissionId = 12 },
                 new RolePermission { Id = 15, RoleId = 1, PermissionId = 13 },
 
-    //  موظف → SubmitLeave فقط
+    //  → SubmitLeave 
     new RolePermission { Id = 11, RoleId = 5, PermissionId = 6 },
+    new RolePermission { Id = 19, RoleId = 4, PermissionId = 6 },
 
-     // مدير قسم → ApproveLeave
+    // مدير قسم → ApproveLeave
     new RolePermission { Id = 12, RoleId = 4, PermissionId = 5 },
 
     new RolePermission { Id = 16, RoleId = 5, PermissionId = 11 }, // AddOwnEducation
@@ -134,7 +136,16 @@ namespace HRMS_Backend.Data
                     مخصومة_من_الرصيد = false,
                     تحتاج_نموذج = false,
                     مفعلة = true
-                }
+                },
+
+                 new LeaveTypes
+                 {
+                     Id = 6,
+                     اسم_الاجازة = "إجازة طارئه",
+                     مخصومة_من_الرصيد = false,
+                     تحتاج_نموذج = false,
+                     مفعلة = true
+                 }
             );
             modelBuilder.Entity<EmployeeEducation>()
     .HasOne(e => e.Employee)

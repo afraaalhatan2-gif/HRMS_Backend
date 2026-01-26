@@ -52,12 +52,16 @@ namespace HRMS_Backend.Controllers
             var userId = int.Parse(User.FindFirst("UserId").Value);
 
             var employee = _context.Employee
-                .FirstOrDefault(e => e.UserId == userId);
+        .Include(e => e.Department)
+            .ThenInclude(d => d.ManagerEmployee)
+        .FirstOrDefault(e => e.UserId == userId);
 
             if (employee == null)
                 return BadRequest("الموظف غير موجود في النظام");
 
-         
+            if (employee.Department == null)
+                return BadRequest("الموظف غير مربوط بإدارة");
+
             // 🔹 نتحقق من نوع الإجازة
             var leaveType = _context.LeaveTypes
                 .FirstOrDefault(l => l.Id == dto.LeaveTypeId);
@@ -110,8 +114,7 @@ namespace HRMS_Backend.Controllers
                 .FirstOrDefault(e => e.UserId == userId);
 
             // نجيب المدير
-            var manager = _context.Employee
-                .FirstOrDefault(m => m.Id == employees.ManagerId);
+            var manager = employee.Department.ManagerEmployee;
 
             if (manager != null)
             {
@@ -214,8 +217,10 @@ namespace HRMS_Backend.Controllers
 
             var requests = _context.LeaveRequests
                 .Include(l => l.Employee)
-                .Where(l => l.Employee.ManagerId == manager.Id &&
-                            l.Status == LeaveStatus.قيد_الانتظار)
+                .Where(l =>
+    l.Employee.Department.ManagerEmployeeId == manager.Id &&
+    l.Status == LeaveStatus.قيد_الانتظار
+)
                 .Select(l => new
                 {
                     l.Id,
@@ -228,9 +233,11 @@ namespace HRMS_Backend.Controllers
                     LeaveTypeName = l.LeaveType.اسم_الاجازة,
 
                     Status = l.Status.ToString(),
-                    l.Notes
+                    l.Notes,
+                    Attachment = l.AttachmentPath
                 })
                 .ToList();
+
 
             return Ok(requests);
         }
